@@ -626,7 +626,9 @@ static void find_pointer_entry_points(const ROM& rom,
         work_queue.push({full_addr, -1, -1, -1, -1, -1, -1, -1, -1, (target_bank > 0 ? target_bank : (uint8_t)1)});
     };
 
-    for (uint8_t bank = 0; bank < rom.bank_count(); ++bank) {
+    const uint16_t bank_count = std::min<uint16_t>(rom.bank_count(), 256);
+    for (uint16_t bank_index = 0; bank_index < bank_count; ++bank_index) {
+        const uint8_t bank = static_cast<uint8_t>(bank_index);
         uint16_t scan_start = (bank == 0) ? 0x0150 : 0x4000;
         uint16_t scan_end = 0x3FFE;
         if (bank > 0) {
@@ -651,8 +653,8 @@ static void find_pointer_entry_points(const ROM& rom,
             if (bank == 0) {
                 // Bank 0 tables commonly point into switchable banks. Probe every
                 // switchable bank and keep only targets that look like real code.
-                for (uint8_t target_bank = 1; target_bank < rom.bank_count(); ++target_bank) {
-                    seed_pointer_target(target_bank, target);
+                for (uint16_t target_bank_index = 1; target_bank_index < bank_count; ++target_bank_index) {
+                    seed_pointer_target(static_cast<uint8_t>(target_bank_index), target);
                 }
             } else {
                 seed_pointer_target(bank, target);
